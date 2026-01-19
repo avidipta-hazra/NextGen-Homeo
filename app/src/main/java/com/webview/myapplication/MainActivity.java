@@ -1,13 +1,11 @@
 package com.webview.myapplication;
 
 import android.Manifest;
-import android.content.pm.PackageManager;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.Network;
@@ -17,15 +15,20 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.webkit.CookieManager;
 import android.webkit.URLUtil;
+import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 public class MainActivity extends Activity {
+
+    private static final int PERMISSION_REQUEST_CODE = 100;
 
     private WebView mWebView;
     private SwipeRefreshLayout swipeRefreshLayout;
@@ -40,7 +43,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Swipe refresh
+        // Swipe Refresh
         swipeRefreshLayout = findViewById(R.id.swipeRefresh);
         swipeRefreshLayout.setColorSchemeColors(Color.parseColor("#007D16"));
 
@@ -49,10 +52,13 @@ public class MainActivity extends Activity {
         WebSettings webSettings = mWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
+        webSettings.setAllowFileAccess(true);
+        webSettings.setAllowContentAccess(true);
 
         mWebView.setWebViewClient(new AppWebViewClient());
+        mWebView.setWebChromeClient(new WebChromeClient());
 
-        // Pull-to-refresh logic
+        // Pull to refresh
         swipeRefreshLayout.setOnRefreshListener(() -> {
             if (isNetworkAvailable()) {
                 mWebView.reload();
@@ -62,7 +68,7 @@ public class MainActivity extends Activity {
             }
         });
 
-        // Enable refresh only when WebView is at top
+        // Enable refresh only when at top
         mWebView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) ->
                 swipeRefreshLayout.setEnabled(scrollY == 0)
         );
@@ -119,9 +125,12 @@ public class MainActivity extends Activity {
         if (connectivityManager != null) {
             connectivityManager.registerDefaultNetworkCallback(networkCallback);
         }
+
+        // Request runtime permissions
+        requestRequiredPermissions();
     }
 
-    // Check internet availability
+    // Internet check
     private boolean isNetworkAvailable() {
         ConnectivityManager cm =
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -130,15 +139,15 @@ public class MainActivity extends Activity {
         Network network = cm.getActiveNetwork();
         if (network == null) return false;
 
-        NetworkCapabilities capabilities = cm.getNetworkCapabilities(network);
-        return capabilities != null &&
-                (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
-                        || capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
-                        || capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
-                        || capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN));
+        NetworkCapabilities caps = cm.getNetworkCapabilities(network);
+        return caps != null &&
+                (caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+                        || caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
+                        || caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
+                        || caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN));
     }
 
-    // Custom WebViewClient
+    // WebViewClient
     private class AppWebViewClient extends WebViewClient {
 
         @Override
@@ -154,7 +163,49 @@ public class MainActivity extends Activity {
         }
     }
 
-    // Back navigation
+    // Runtime permissions
+    private void requestRequiredPermissions() {
+        String[] permissions = {
+                Manifest.permission.CAMERA,
+                Manifest.permission.RECORD_AUDIO
+        };
+
+        boolean needRequest = false;
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(this, permission)
+                    != PackageManager.PERMISSION_GRANTED) {
+                needRequest = true;
+                break;
+            }
+        }
+
+        if (needRequest) {
+            ActivityCompat.requestPermissions(
+                    this,
+                    permissions,
+                    PERMISSION_REQUEST_CODE
+            );
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String[] permissions,
+                                           int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            for (int result : grantResults) {
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this,
+                            "Some features may not work without permissions",
+                            Toast.LENGTH_LONG).show();
+                    return;
+                }
+            }
+        }
+    }
+
+    // Back button
     @Override
     public void onBackPressed() {
         if (mWebView.canGoBack()) {
