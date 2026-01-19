@@ -2,8 +2,28 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.webview.myapplication">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+<!-- Internet -->
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+<!-- Audio (for voice, video, recording inside WebView) -->
+<uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+<!-- Camera (for image capture from WebView) -->
+<uses-permission android:name="android.permission.CAMERA" />
+
+<!-- File access (downloads & uploads via WebView) -->
+<uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+<uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+<uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+
+<!-- For Android 12 and below -->
+<uses-permission
+    android:name="android.permission.READ_EXTERNAL_STORAGE"
+    android:maxSdkVersion="32" />
+
+<!-- Notifications for download manager -->
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:icon="@mipmap/ic_launcher"
