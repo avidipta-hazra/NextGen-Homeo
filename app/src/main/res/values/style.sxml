@@ -1,4 +1,0 @@
-<style name="Theme.MyApplication.NoActionBar" parent="Theme.MyApplication">
-    <item name="windowActionBar">false</item>
-    <item name="windowNoTitle">true</item>
-</style>
