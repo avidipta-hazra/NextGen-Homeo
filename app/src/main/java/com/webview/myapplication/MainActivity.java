@@ -21,6 +21,9 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
+import android.speech.tts.TextToSpeech;
+import android.webkit.JavascriptInterface;
+import java.util.Locale;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -31,6 +34,7 @@ public class MainActivity extends Activity {
     private static final int PERMISSION_REQUEST_CODE = 100;
 
     private WebView mWebView;
+    private TextToSpeech tts;
     private SwipeRefreshLayout swipeRefreshLayout;
     private ConnectivityManager.NetworkCallback networkCallback;
 
@@ -61,6 +65,27 @@ webSettings.setMediaPlaybackRequiresUserGesture(false);
 
         mWebView.setWebViewClient(new AppWebViewClient());
         mWebView.setWebChromeClient(new WebChromeClient());
+        // ================= ANDROID NATIVE TTS =================
+tts = new TextToSpeech(this, status -> {
+    if (status == TextToSpeech.SUCCESS) {
+        tts.setLanguage(Locale.ENGLISH);
+        tts.setSpeechRate(0.9f);
+        tts.setPitch(1.0f);
+    }
+});
+
+// Expose TTS to JavaScript
+mWebView.addJavascriptInterface(new Object() {
+
+    @JavascriptInterface
+    public void speak(String text) {
+        if (tts != null) {
+            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "CT_TTS");
+        }
+    }
+
+}, "AndroidTTS");
+// =====================================================
 // 🔊 FORCE AUDIO OUTPUT FOR WEBVIEW
 setVolumeControlStream(android.media.AudioManager.STREAM_MUSIC);
 
