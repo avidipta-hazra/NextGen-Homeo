@@ -66,6 +66,7 @@ webSettings.setMediaPlaybackRequiresUserGesture(false);
         mWebView.setWebViewClient(new AppWebViewClient());
         mWebView.setWebChromeClient(new WebChromeClient());
         // ================= ANDROID NATIVE TTS =================
+// ================= ANDROID NATIVE TTS =================
 tts = new TextToSpeech(this, status -> {
     if (status == TextToSpeech.SUCCESS) {
         tts.setLanguage(Locale.ENGLISH);
@@ -73,35 +74,46 @@ tts = new TextToSpeech(this, status -> {
         tts.setPitch(1.0f);
     }
 });
+tts.setOnUtteranceProgressListener(
+    new android.speech.tts.UtteranceProgressListener() {
 
-// Expose TTS to JavaScript
+        @Override
+        public void onStart(String utteranceId) {}
+
+        @Override
+        public void onDone(String utteranceId) {
+            mWebView.post(() ->
+                mWebView.evaluateJavascript(
+                    "window.__ttsDone && window.__ttsDone();",
+                    null
+                )
+            );
+        }
+
+        @Override
+        public void onError(String utteranceId) {}
+    }
+);
+
+
 mWebView.addJavascriptInterface(new Object() {
 
     @JavascriptInterface
     public void speak(String text) {
         if (tts != null) {
-           tts.speak(text, TextToSpeech.QUEUE_ADD, null, "CT_TTS");
-
+            tts.speak(
+                text,
+                TextToSpeech.QUEUE_ADD, // 🚨 MUST BE QUEUE_ADD
+                null,
+                "CT_TTS"
+            );
         }
     }
 
 }, "AndroidTTS");
 
-        tts.setOnUtteranceProgressListener(new android.speech.tts.UtteranceProgressListener() {
-    @Override
-    public void onStart(String utteranceId) {}
 
-    @Override
-    public void onDone(String utteranceId) {
-        mWebView.post(() -> mWebView.evaluateJavascript(
-            "window.__ttsDone && window.__ttsDone();", null
-        ));
-    }
-
-    @Override
-    public void onError(String utteranceId) {}
-});
-
+    
 // =====================================================
 // 🔊 FORCE AUDIO OUTPUT FOR WEBVIEW
 setVolumeControlStream(android.media.AudioManager.STREAM_MUSIC);
