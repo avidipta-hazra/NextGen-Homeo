@@ -14,14 +14,12 @@
        <activity
     android:name="com.webview.myapplication.SplashActivity"
     android:exported="true"
-    android:theme="@style/Theme.MyApplication.NoActionBar">
+    android:theme="@style/Theme.MyApplication.Splash">
     <intent-filter>
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.LAUNCHER" />
     </intent-filter>
 </activity>
-
-
 
         <activity
             android:name="com.webview.myapplication.MainActivity"
