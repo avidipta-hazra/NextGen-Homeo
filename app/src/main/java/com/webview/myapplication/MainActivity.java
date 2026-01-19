@@ -286,15 +286,22 @@ if (audioManager != null) {
     }
 
     // Cleanup
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (networkCallback != null) {
-            ConnectivityManager cm =
-                    (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-            if (cm != null) {
-                cm.unregisterNetworkCallback(networkCallback);
-            }
+   @Override
+protected void onDestroy() {
+    super.onDestroy();
+
+    if (tts != null) {
+        tts.stop();
+        tts.shutdown();
+    }
+
+    if (networkCallback != null) {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm != null) {
+            cm.unregisterNetworkCallback(networkCallback);
         }
     }
+}
+
 }
