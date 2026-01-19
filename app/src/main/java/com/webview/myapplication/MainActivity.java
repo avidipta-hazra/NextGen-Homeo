@@ -49,12 +49,15 @@ public class MainActivity extends Activity {
 
         // WebView
         mWebView = findViewById(R.id.activity_main_webview);
-        WebSettings webSettings = mWebView.getSettings();
-        webSettings.setMediaPlaybackRequiresUserGesture(false);
-        webSettings.setJavaScriptEnabled(true);
-        webSettings.setDomStorageEnabled(true);
-        webSettings.setAllowFileAccess(true);
-        webSettings.setAllowContentAccess(true);
+       WebSettings webSettings = mWebView.getSettings();
+webSettings.setJavaScriptEnabled(true);
+webSettings.setDomStorageEnabled(true);
+webSettings.setAllowFileAccess(true);
+webSettings.setAllowContentAccess(true);
+
+// 🔊 THIS LINE IS CRITICAL
+webSettings.setMediaPlaybackRequiresUserGesture(false);
+
 
         mWebView.setWebViewClient(new AppWebViewClient());
         mWebView.setWebChromeClient(new WebChromeClient());
