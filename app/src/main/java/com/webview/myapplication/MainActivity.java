@@ -4,10 +4,10 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.Context;
+import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
-import android.net.ConnectivityManager.NetworkCallback;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -19,9 +19,16 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 public class MainActivity extends Activity {
+
     private WebView mWebView;
-    private NetworkCallback networkCallback;
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private ConnectivityManager.NetworkCallback networkCallback;
+
+    private static final String HOME_URL = "https://demo.goldenjubileehmai.in/home/";
+    private static final String OFFLINE_URL = "file:///android_asset/offline.html";
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -29,69 +36,121 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Swipe refresh
+        swipeRefreshLayout = findViewById(R.id.swipeRefresh);
+        swipeRefreshLayout.setColorSchemeColors(Color.parseColor("#007D16"));
+
+        // WebView
         mWebView = findViewById(R.id.activity_main_webview);
         WebSettings webSettings = mWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
-        mWebView.setWebViewClient(new HelloWebViewClient());
+        webSettings.setDomStorageEnabled(true);
 
+        mWebView.setWebViewClient(new AppWebViewClient());
+
+        // Pull-to-refresh logic
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            if (isNetworkAvailable()) {
+                mWebView.reload();
+            } else {
+                swipeRefreshLayout.setRefreshing(false);
+                Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Enable refresh only when WebView is at top
+        mWebView.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) ->
+                swipeRefreshLayout.setEnabled(scrollY == 0)
+        );
+
+        // Download support
         mWebView.setDownloadListener((url, userAgent, contentDisposition, mimetype, contentLength) -> {
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
             request.setMimeType(mimetype);
             request.addRequestHeader("cookie", CookieManager.getInstance().getCookie(url));
             request.addRequestHeader("User-Agent", userAgent);
-            request.setDescription("Downloading file...");
             request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimetype));
-            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, URLUtil.guessFileName(url, contentDisposition, mimetype));
+            request.setDescription("Downloading file...");
+            request.setNotificationVisibility(
+                    DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED
+            );
+            request.setDestinationInExternalPublicDir(
+                    Environment.DIRECTORY_DOWNLOADS,
+                    URLUtil.guessFileName(url, contentDisposition, mimetype)
+            );
+
             DownloadManager dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-            dm.enqueue(request);
-            Toast.makeText(getApplicationContext(), "Downloading File", Toast.LENGTH_LONG).show();
+            if (dm != null) {
+                dm.enqueue(request);
+                Toast.makeText(this, "Downloading file", Toast.LENGTH_SHORT).show();
+            }
         });
 
+        // Initial load
         if (isNetworkAvailable()) {
-            mWebView.loadUrl("https://demo.goldenjubileehmai.in/home/");
+            mWebView.loadUrl(HOME_URL);
         } else {
-            mWebView.loadUrl("file:///android_asset/offline.html");
+            mWebView.loadUrl(OFFLINE_URL);
         }
 
-        networkCallback = new NetworkCallback() {
+        // Network callback
+        networkCallback = new ConnectivityManager.NetworkCallback() {
             @Override
             public void onAvailable(Network network) {
                 runOnUiThread(() -> {
-                    if (!mWebView.getUrl().startsWith("file:///android_asset")) {
-                       mWebView.loadUrl("https://demo.goldenjubileehmai.in/home/");
+                    if (!HOME_URL.equals(mWebView.getUrl())) {
+                        mWebView.loadUrl(HOME_URL);
                     }
                 });
             }
+
             @Override
             public void onLost(Network network) {
-                runOnUiThread(() -> {
-                    if (mWebView.getUrl() != null) {
-                        mWebView.loadUrl("file:///android_asset/offline.html");
-                    }
-                });
+                runOnUiThread(() -> mWebView.loadUrl(OFFLINE_URL));
             }
         };
-        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        connectivityManager.registerDefaultNetworkCallback(networkCallback);
+
+        ConnectivityManager connectivityManager =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null) {
+            connectivityManager.registerDefaultNetworkCallback(networkCallback);
+        }
     }
 
+    // Check internet availability
     private boolean isNetworkAvailable() {
-        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        Network nw = connectivityManager.getActiveNetwork();
-        if (nw == null) return false;
-        NetworkCapabilities actNw = connectivityManager.getNetworkCapabilities(nw);
-        return actNw != null && (actNw.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || actNw.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) || actNw.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) || actNw.hasTransport(NetworkCapabilities.TRANSPORT_VPN));
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm == null) return false;
+
+        Network network = cm.getActiveNetwork();
+        if (network == null) return false;
+
+        NetworkCapabilities capabilities = cm.getNetworkCapabilities(network);
+        return capabilities != null &&
+                (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+                        || capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
+                        || capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
+                        || capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN));
     }
 
-    private static class HelloWebViewClient extends WebViewClient {
+    // Custom WebViewClient
+    private class AppWebViewClient extends WebViewClient {
+
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             view.loadUrl(request.getUrl().toString());
             return true;
         }
+
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            swipeRefreshLayout.setRefreshing(false);
+            super.onPageFinished(view, url);
+        }
     }
 
+    // Back navigation
     @Override
     public void onBackPressed() {
         if (mWebView.canGoBack()) {
@@ -101,12 +160,16 @@ public class MainActivity extends Activity {
         }
     }
 
+    // Cleanup
     @Override
-    public void onDestroy() {
+    protected void onDestroy() {
         super.onDestroy();
         if (networkCallback != null) {
-            ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-            connectivityManager.unregisterNetworkCallback(networkCallback);
+            ConnectivityManager cm =
+                    (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (cm != null) {
+                cm.unregisterNetworkCallback(networkCallback);
+            }
         }
     }
 }
