@@ -6,14 +6,14 @@
 
     <!-- App Logo -->
     <ImageView
-        android:id="@+id/logo"
-        android:layout_width="140dp"
-        android:layout_height="140dp"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="180dp"
-        android:src="@mipmap/ic_launcher"
-        android:alpha="0"
-        android:animateLayoutChanges="true" />
+    android:id="@+id/logo"
+    android:layout_width="160dp"
+    android:layout_height="160dp"
+    android:layout_centerHorizontal="true"
+    android:layout_marginTop="180dp"
+    android:src="@drawable/logo"
+    android:scaleType="fitCenter"
+    android:alpha="0" />
 
     <!-- Typing Footer Text -->
     <TextView
