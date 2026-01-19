@@ -19,23 +19,16 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        // STEP 3 STARTS HERE 👇
-        View logo = findViewById(R.id.logo);
-        logo.animate()
+        // Logo animation
+        findViewById(R.id.logo).animate()
                 .alpha(1f)
-                .translationYBy(-40)
+                .translationYBy(-50)
                 .setDuration(1000)
                 .setStartDelay(300)
                 .start();
-        // STEP 3 ENDS HERE 👆
 
         typingText = findViewById(R.id.typingText);
         startTypingEffect();
-
-        new Handler().postDelayed(() -> {
-            startActivity(new Intent(SplashActivity.this, MainActivity.class));
-            finish();
-        }, 3000);
     }
 
     private void startTypingEffect() {
@@ -47,6 +40,12 @@ public class SplashActivity extends AppCompatActivity {
                     typingText.setText(text.substring(0, index + 1));
                     index++;
                     handler.postDelayed(this, 80);
+                } else {
+                    // Typing finished → wait 3 sec → go to MainActivity
+                    handler.postDelayed(() -> {
+                        startActivity(new Intent(SplashActivity.this, MainActivity.class));
+                        finish();
+                    }, 3000);
                 }
             }
         }, 300);
