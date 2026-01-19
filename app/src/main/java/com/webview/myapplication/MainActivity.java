@@ -61,7 +61,19 @@ webSettings.setMediaPlaybackRequiresUserGesture(false);
 
         mWebView.setWebViewClient(new AppWebViewClient());
         mWebView.setWebChromeClient(new WebChromeClient());
+// 🔊 FORCE AUDIO OUTPUT FOR WEBVIEW
+setVolumeControlStream(android.media.AudioManager.STREAM_MUSIC);
 
+android.media.AudioManager audioManager =
+        (android.media.AudioManager) getSystemService(Context.AUDIO_SERVICE);
+
+if (audioManager != null) {
+    audioManager.requestAudioFocus(
+            focusChange -> {},
+            android.media.AudioManager.STREAM_MUSIC,
+            android.media.AudioManager.AUDIOFOCUS_GAIN
+    );
+}
         // Pull to refresh
         swipeRefreshLayout.setOnRefreshListener(() -> {
             if (isNetworkAvailable()) {
