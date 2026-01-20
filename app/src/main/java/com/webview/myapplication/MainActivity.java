@@ -59,7 +59,7 @@ public class MainActivity extends Activity {
         CookieManager cookieManager = CookieManager.getInstance();
 cookieManager.setAcceptCookie(true);
 cookieManager.setAcceptThirdPartyCookies(mWebView, true);
-cookieManager.flush();
+
 
         
        WebSettings webSettings = mWebView.getSettings();
