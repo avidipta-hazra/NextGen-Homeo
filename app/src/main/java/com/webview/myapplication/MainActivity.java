@@ -53,6 +53,13 @@ public class MainActivity extends Activity {
 
         // WebView
         mWebView = findViewById(R.id.activity_main_webview);
+
+
+        // ENABLE COOKIE PERSISTENCE
+CookieManager cookieManager = CookieManager.getInstance();
+cookieManager.setAcceptCookie(true);
+cookieManager.setAcceptThirdPartyCookies(mWebView, true);
+        
        WebSettings webSettings = mWebView.getSettings();
 webSettings.setJavaScriptEnabled(true);
 webSettings.setDomStorageEnabled(true);
