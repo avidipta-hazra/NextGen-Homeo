@@ -56,9 +56,11 @@ public class MainActivity extends Activity {
 
 
         // ENABLE COOKIE PERSISTENCE
-CookieManager cookieManager = CookieManager.getInstance();
+        CookieManager cookieManager = CookieManager.getInstance();
 cookieManager.setAcceptCookie(true);
 cookieManager.setAcceptThirdPartyCookies(mWebView, true);
+cookieManager.flush();
+
         
        WebSettings webSettings = mWebView.getSettings();
 webSettings.setJavaScriptEnabled(true);
