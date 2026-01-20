@@ -107,16 +107,17 @@ tts.setOnUtteranceProgressListener(
 mWebView.addJavascriptInterface(new Object() {
 
     @JavascriptInterface
-    public void logout() {
-        runOnUiThread(() -> {
-            CookieManager cm = CookieManager.getInstance();
-            cm.removeAllCookies(null);
-            cm.flush();
+public void logout() {
+    runOnUiThread(() -> {
+        CookieManager cm = CookieManager.getInstance();
+        cm.removeAllCookies(value -> cm.flush());
 
-            mWebView.clearCache(true);
-            mWebView.clearHistory();
-        });
-    }
+        mWebView.clearCache(true);
+        mWebView.clearHistory();
+        mWebView.loadUrl("https://demo.goldenjubileehmai.in/home/");
+    });
+}
+
 
 }, "AndroidAuth");
 
