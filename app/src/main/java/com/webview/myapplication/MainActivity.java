@@ -104,6 +104,21 @@ tts.setOnUtteranceProgressListener(
     }
 );
 
+mWebView.addJavascriptInterface(new Object() {
+
+    @JavascriptInterface
+    public void logout() {
+        runOnUiThread(() -> {
+            CookieManager cm = CookieManager.getInstance();
+            cm.removeAllCookies(null);
+            cm.flush();
+
+            mWebView.clearCache(true);
+            mWebView.clearHistory();
+        });
+    }
+
+}, "AndroidAuth");
 
 mWebView.addJavascriptInterface(new Object() {
 
