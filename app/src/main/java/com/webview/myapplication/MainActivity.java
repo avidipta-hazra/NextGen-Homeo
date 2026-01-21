@@ -56,9 +56,13 @@ public class MainActivity extends Activity {
 
 
         // ENABLE COOKIE PERSISTENCE
-        CookieManager cookieManager = CookieManager.getInstance();
+       // 🔐 REQUIRED FOR COOKIE PERSISTENCE
+android.webkit.CookieSyncManager.createInstance(this);
+
+CookieManager cookieManager = CookieManager.getInstance();
 cookieManager.setAcceptCookie(true);
 cookieManager.setAcceptThirdPartyCookies(mWebView, true);
+cookieManager.flush();
 
 
         
@@ -299,6 +303,18 @@ if (audioManager != null) {
             }
         }
     }
+
+    @Override
+protected void onPause() {
+    super.onPause();
+    CookieManager.getInstance().flush();
+}
+
+@Override
+protected void onResume() {
+    super.onResume();
+    CookieManager.getInstance().flush();
+}
 
     // Back button
     @Override
