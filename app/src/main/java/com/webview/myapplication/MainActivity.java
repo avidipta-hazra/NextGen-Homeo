@@ -202,7 +202,7 @@ if (audioManager != null) {
             mWebView.loadUrl(OFFLINE_URL);
         }
 
-       
+      
         // Network callback
         networkCallback = new ConnectivityManager.NetworkCallback() {
             @Override
@@ -314,14 +314,8 @@ protected void onPause() {
 @Override
 protected void onResume() {
     super.onResume();
-
     CookieManager.getInstance().flush();
-
-    if (mWebView != null && isNetworkAvailable()) {
-        mWebView.reload();   // ✅ THIS IS THE AUTO REFRESH
-    }
 }
-
 
     // Back button
     @Override
