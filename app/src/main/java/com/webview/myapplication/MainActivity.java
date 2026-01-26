@@ -202,23 +202,7 @@ if (audioManager != null) {
             mWebView.loadUrl(OFFLINE_URL);
         }
 
-        mWebView.setWebViewClient(new AppWebViewClient() {
-    private boolean firstReload = true;
-
-    @Override
-    public void onPageFinished(WebView view, String url) {
-        super.onPageFinished(view, url);
-
-        // stop swipe refresh
-        swipeRefreshLayout.setRefreshing(false);
-
-        // reload once after first finished load
-        if (firstReload) {
-            firstReload = false;
-            view.reload(); // This forces a full reload
-        }
-    }
-});
+       
         // Network callback
         networkCallback = new ConnectivityManager.NetworkCallback() {
             @Override
@@ -330,8 +314,14 @@ protected void onPause() {
 @Override
 protected void onResume() {
     super.onResume();
+
     CookieManager.getInstance().flush();
+
+    if (mWebView != null && isNetworkAvailable()) {
+        mWebView.reload();   // ✅ THIS IS THE AUTO REFRESH
+    }
 }
+
 
     // Back button
     @Override
