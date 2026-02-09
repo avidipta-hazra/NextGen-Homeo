@@ -30,6 +30,8 @@ import androidx.core.content.ContextCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 public class MainActivity extends Activity {
+    private android.webkit.ValueCallback<Uri[]> filePathCallback;
+    private static final int FILE_CHOOSER_REQUEST_CODE = 1001;
 
     private static final int PERMISSION_REQUEST_CODE = 100;
 
@@ -77,7 +79,34 @@ webSettings.setMediaPlaybackRequiresUserGesture(false);
 
 
         mWebView.setWebViewClient(new AppWebViewClient());
-        mWebView.setWebChromeClient(new WebChromeClient());
+        mWebView.setWebChromeClient(new WebChromeClient() {
+
+    @Override
+    public boolean onShowFileChooser(
+            WebView webView,
+            android.webkit.ValueCallback<Uri[]> filePathCallback,
+            FileChooserParams fileChooserParams) {
+
+        // Clear previous callback
+        if (MainActivity.this.filePathCallback != null) {
+            MainActivity.this.filePathCallback.onReceiveValue(null);
+        }
+
+        MainActivity.this.filePathCallback = filePathCallback;
+
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("image/*");
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+
+        startActivityForResult(
+                Intent.createChooser(intent, "Select Case Images"),
+                FILE_CHOOSER_REQUEST_CODE
+        );
+        return true;
+    }
+});
+
         // ================= ANDROID NATIVE TTS =================
 // ================= ANDROID NATIVE TTS =================
 tts = new TextToSpeech(this, status -> {
@@ -326,6 +355,31 @@ protected void onResume() {
             super.onBackPressed();
         }
     }
+@Override
+protected void onActivityResult(int requestCode, int resultCode, android.content.Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
+
+    if (requestCode == FILE_CHOOSER_REQUEST_CODE && filePathCallback != null) {
+
+        Uri[] results = null;
+
+        if (resultCode == Activity.RESULT_OK && data != null) {
+
+            if (data.getClipData() != null) {
+                int count = data.getClipData().getItemCount();
+                results = new Uri[count];
+                for (int i = 0; i < count; i++) {
+                    results[i] = data.getClipData().getItemAt(i).getUri();
+                }
+            } else if (data.getData() != null) {
+                results = new Uri[]{data.getData()};
+            }
+        }
+
+        filePathCallback.onReceiveValue(results);
+        filePathCallback = null;
+    }
+}
 
     // Cleanup
    @Override
