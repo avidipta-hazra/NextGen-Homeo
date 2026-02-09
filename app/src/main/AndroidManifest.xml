@@ -16,7 +16,7 @@
 <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
 <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
-<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+ android:name="android.permission.WRITE_EXTERNAL_STORAGE"
     android:maxSdkVersion="28"/>
 
 <!-- For Android 12 and below -->
@@ -43,9 +43,11 @@
     </intent-filter>
 </activity>
 
-        <activity
-            android:name="com.webview.myapplication.MainActivity"
-            android:configChanges="orientation|screenSize" />
+     <activity
+    android:name="com.webview.myapplication.MainActivity"
+    android:exported="true"
+    android:configChanges="orientation|screenSize" />
+
 
     </application>
 </manifest>
