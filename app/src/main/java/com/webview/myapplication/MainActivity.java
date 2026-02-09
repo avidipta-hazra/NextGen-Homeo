@@ -1,5 +1,6 @@
 package com.webview.myapplication;
 import android.content.Intent;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -49,6 +50,21 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // 🔔 FIREBASE FCM TOKEN (STEP 3.2)
+FirebaseMessaging.getInstance().getToken()
+        .addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) {
+                android.util.Log.e("FCM", "Token fetch failed");
+                return;
+            }
+
+            String token = task.getResult();
+            android.util.Log.d("FCM_TOKEN", token);
+
+            // OPTIONAL (NEXT STEP): send token to WordPress
+            // sendTokenToWordPress(token);
+        });
 
         // Swipe Refresh
         swipeRefreshLayout = findViewById(R.id.swipeRefresh);
@@ -380,6 +396,43 @@ protected void onActivityResult(int requestCode, int resultCode, android.content
         filePathCallback.onReceiveValue(results);
         filePathCallback = null;
     }
+}
+private void sendTokenToWordPress(String token) {
+
+    new Thread(() -> {
+        try {
+            java.net.URL url = new java.net.URL(
+                "https://demo.goldenjubileehmai.in/wp-admin/admin-ajax.php"
+            );
+
+            java.net.HttpURLConnection conn =
+                (java.net.HttpURLConnection) url.openConnection();
+
+            conn.setRequestMethod("POST");
+            conn.setDoOutput(true);
+            conn.setRequestProperty(
+                "Content-Type",
+                "application/x-www-form-urlencoded"
+            );
+
+            String postData =
+                "action=save_fcm_token&token=" +
+                java.net.URLEncoder.encode(token, "UTF-8");
+
+            java.io.OutputStream os = conn.getOutputStream();
+            os.write(postData.getBytes());
+            os.flush();
+            os.close();
+
+            int responseCode = conn.getResponseCode();
+            android.util.Log.d("FCM", "Sent to WP, code=" + responseCode);
+
+            conn.disconnect();
+
+        } catch (Exception e) {
+            android.util.Log.e("FCM", "Error sending token", e);
+        }
+    }).start();
 }
 
     // Cleanup
