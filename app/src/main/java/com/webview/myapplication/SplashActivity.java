@@ -11,8 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 public class SplashActivity extends AppCompatActivity {
 
     private TextView typingText;
-    private final String text = "🇮🇳 Made in India 🇮🇳 
-by NextGen Homoeo. Lab";
+    private final String text = "🇮🇳 Made in India 🇮🇳\nby NextGen Homoeo. Lab";
     private int index = 0;
 
     @Override
