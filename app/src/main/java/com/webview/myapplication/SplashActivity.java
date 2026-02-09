@@ -4,14 +4,16 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.widget.TextView;
-import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 public class SplashActivity extends AppCompatActivity {
 
     private TextView typingText;
-    private final String text = "🇮🇳 Made in India 🇮🇳\nby NextGen Homoeo. Lab";
+
+    private final String fixedText = "🇮🇳 Made in India 🇮🇳\n\n";
+    private final String typingPart = "By NextGen Hom Lab";
+
     private int index = 0;
 
     @Override
@@ -28,6 +30,10 @@ public class SplashActivity extends AppCompatActivity {
                 .start();
 
         typingText = findViewById(R.id.typingText);
+
+        // Set fixed text immediately
+        typingText.setText(fixedText);
+
         startTypingEffect();
     }
 
@@ -36,8 +42,10 @@ public class SplashActivity extends AppCompatActivity {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (index < text.length()) {
-                    typingText.setText(text.substring(0, index + 1));
+                if (index < typingPart.length()) {
+                    typingText.setText(
+                            fixedText + typingPart.substring(0, index + 1)
+                    );
                     index++;
                     handler.postDelayed(this, 80);
                 } else {
